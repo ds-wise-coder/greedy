@@ -1,144 +1,93 @@
 package 박지인;
 
-import java.util.ArrayList;
 import java.util.LinkedList;
-import java.util.Queue;
+import java.util.List;
 import java.util.Scanner;
 
 //뱀
-
-class Node {
-
-    private int time;
-    private char direction;
-
-    public Node(int time, char direction) {
-        this.time = time;
-        this.direction = direction;
-    }
-
-    public int getTime() {
-        return this.time;
-    }
-
-    public char getDirection() {
-        return this.direction;
-    }
-}
-
-class Position {
-
-    private int x;
-    private int y;
-
-    public Position(int x, int y) {
-        this.x = x;
-        this.y = y;
-    }
-
-    public int getX() {
-        return this.x;
-    }
-
-    public int getY() {
-        return this.y;
-    }
-}
-
-
 public class Imple05 {
-    //보드 크기, 사과 개수, 방향 변환 횟수
-    public static int n, k, l;
-    //맵 정보
-    public static int[][] arr = new int[101][101];
-    //방향 회전 정보
-    public static ArrayList<Node> info = new ArrayList<>();
-
-    //처음에 오른쪽 방향 동 남 서 북
-    public static int dx[] = { 0, 1, 0, -1 };
-    public static int dy[] = { 1, 0, -1, 0 };
-
-    public static int turn(int direction, char c) {
-        if (c == 'L')
-            direction = (direction == 0) ? 3 : direction - 1;
-        else
-            direction = (direction + 1) % 4;
-        return direction;
-    }
-
-    public static int simulate() {
-        //뱀의 머리 위치
-        int x = 1, y = 1;
-        //뱀이 존재하는 위치는 2로 표시
-        arr[x][y] = 2;
-        //처음에는 동쪽을 보고 있음.
-        int direction = 0;
-        //시작한 뒤에 지난 시간(초) 
-        int time = 0;
-        //다음에 회전할 정보
-        int index = 0;
-        //뱀이 차지하고 있는 위치 정보(꼬리가 앞쪽)
-        Queue<Position> q = new LinkedList<>();
-        q.offer(new Position(x, y));
-
-        while (true) {
-            int nx = x + dx[direction];
-            int ny = y + dy[direction];
-            //맵 범위 안에 있고, 뱀의 몸통이 없는 위치라면
-            if (1 <= nx && nx <= n && 1 <= ny && ny <= n && arr[nx][ny] != 2) {
-                //사과가 없다면 이동 후에 꼬리 제거
-                if (arr[nx][ny] == 0) {
-                    arr[nx][ny] = 2;
-                    q.offer(new Position(nx, ny));
-                    Position prev = q.poll();
-                    arr[prev.getX()][prev.getY()] = 0;
-                }
-                //사과가 있다면 이동 후에 꼬리 그대로 두기
-                if (arr[nx][ny] == 1) {
-                    arr[nx][ny] = 2;
-                    q.offer(new Position(nx, ny));
-                }
-            }
-            //벽이나 자신 몸에 부딪혔다면
-            else {
-                time += 1;
-                break;
-            }
-            //다음 위치로 머리를 이동
-            x = nx;
-            y = ny;
-            time += 1;
-            if (index < 1 && time == info.get(index).getTime()) {
-                direction = turn(direction, info.get(index).getDirection());
-                index += 1;
-            }
-
-        }
-        return time;
-
-    }
+    private static int[] dx = {0, 1, 0, -1};
+    private static int[] dy = {1, 0, -1, 0};
+    private static int n, l, k;
+    private static int[][] board;//보드판
+    private static List<int[]> snake;//뱀 위치
 
     public static void main(String[] args) {
+        snake = new LinkedList<>();
+        snake.add(new int[]{0, 0});//시작 위치
+
         Scanner sc = new Scanner(System.in);
-        
-        n = sc.nextInt();
-        k = sc.nextInt();
+        n = sc.nextInt();//보드판 크기
+        board = new int[n][n];//보드판 초기화
 
-        // 맵 정보(사과 있는 곳은 1로 표시)
-        for (int i = 0; i < k; i++) {
-            int a = sc.nextInt();
-            int b = sc.nextInt();
-            arr[a][b] = 1;
-        }
-
-        // 방향 회전 정보 입력
-        l = sc.nextInt();
-        for (int i = 0; i < l; i++) {
+        k = sc.nextInt();//사과 개수
+        for (int i = 0; i < k; i++) {// 사과의 위치 설정
             int x = sc.nextInt();
-            char c = sc.next().charAt(0);
-            info.add(new Node(x, c));
+            int y = sc.nextInt();
+            board[x - 1][y - 1] = 1; 
         }
-  
-        System.out.println(simulate());
+
+        l = sc.nextInt();//방향 변환 횟수
+        int[][] dir = new int[l][2];//방향 정보
+        for (int i = 0; i < l; i++) {
+            dir[i][0] = sc.nextInt();
+            char temp = sc.next().charAt(0);
+            dir[i][1] = (temp == 'L') ? -1 : 1; // L(완)-> -1, D(오) -> 1
+        }
+
+        int time = solution(0, 0, 0, dir);
+        System.out.println(time);
+
+        sc.close();
+    }
+
+    private static int solution(int curX, int curY, int currentDir, int[][] dir) {
+        int time = 0;
+        int turn = 0;
+        
+        while (true) {
+            time++;
+            int nextX = curX + dx[currentDir];
+            int nextY = curY + dy[currentDir];
+
+            //자기 자신과 부딪히거나 보드 밖으로 나간 경우
+            if (isFinish(nextX, nextY)) break;
+
+            if (board[nextX][nextY] == 2) { // 사과를 먹으면
+                snake.add(new int[]{nextX, nextY});
+            } else {
+                snake.add(new int[]{nextX, nextY});
+                snake.remove(0); // snake 꼬리 제거
+            }
+
+            curX = nextX;
+            curY = nextY;
+
+            if (turn < l) {
+                if (time == dir[turn][0]) { // 다음 방향 설정
+                    currentDir = nextDir(currentDir, dir[turn][1]);
+                    turn++;
+                }
+            }
+        }
+        return time;
+    }
+
+    private static int nextDir(int current, int dir) { // current 현재, dir 다음 방향
+        int next = (current + dir) % 4;
+        if (next == -1) next = 3;
+
+        return next;
+    }
+
+    private static boolean isFinish(int x, int y) {
+        if (x == -1 || x == n || y == -1 || y == n) { // 다음 위치가 보드판 밖으로 나갔는지
+            return true;
+        }
+        for (int i = 0; i < snake.size(); i++) { // 뱀 몸통이랑 닿았는지
+            int[] s = snake.get(i);
+            if (s[0] == x && s[1] == y) return true;
+        }
+        return false;
     }
 }

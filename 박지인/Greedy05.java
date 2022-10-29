@@ -16,7 +16,7 @@ public class Greedy05 {
 
         int count = 0;
         for (int i = 0; i < n - 1; i++) {
-            for (int j = i + 1; j < n; j++) {
+            for (int j = i + 1; j < m; j++) {
                 if (array[i] != array[j]) {
                     count++;
                 }

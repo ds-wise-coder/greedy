@@ -6,39 +6,30 @@ import java.util.Scanner;
 public class Imple03 {
     public static int solution(String s) {
         int answer = s.length();
-        for (int step = 1; step < s.length() / 2 + 1; step++) {
-            String compressed = "";
-            String prev = s.substring(0, step);
-            int cnt = 1;
-            //단위 step 크기만큼 증가시키며 이전 문자열과 비교
-            for (int j = step; j < s.length(); j += step) {
-                //이전 상태와 동일하다면 압축 횟수 증가
-                String sub = "";
-                for (int k = j; k < j + step; k++) {
-                    if (k < s.length()) {
-                        sub += s.charAt(k);
-                    }
-                }
-                if (prev.equals(sub)) {
-                    cnt += 1;
-                }
-                //다른 문자열이 나왔다면(더 이상 압축 못하) 
-                else {
-                    compressed += (cnt >= 2) ? cnt + prev : prev;
-                    sub = "";
-                    for (int k = j; k < j + step; k++) {
-                        if (k < s.length()) {
-                            sub += s.charAt(k);
-                        }
-                        prev = sub; //다시 상태 초기화
-                        cnt = 1;
-                    }
-                }
+        
+        for (int i = 1; i <= s.length() / 2; i++) {
+            int zipLevel = 1; //현재 압축정도
+            String zipStr = s.substring(0, i); //압축할 문자
+            StringBuilder result = new StringBuilder(); //압축완료한 문자를 저장할 곳
 
+            for (int j = i; j <= s.length(); j += i) {
+                //다음 문자 추출
+                String next = s.substring(j, j + i > s.length() ? s.length() : i + j);
+                //다음 문자와 현재 문자가 같으면 ziplevel 증가
+                if (zipStr.equals(next))
+                    zipLevel++;
+                else {
+                    //(압축 안됬을 경우 공백, 압축됬을 경우 zipLevel) + 압축할 문자
+                    result.append((zipLevel != 1 ? zipLevel : "") + zipStr);
+                    
+                    zipStr = next;
+                    zipLevel = 1;
+                }
             }
-            compressed += (cnt >= 2) ? cnt + prev : prev;
-            answer= Math.min(answer, compressed.length());
-            
+            //마지막에 추가안 된 zipStr 추가
+            result.append(zipStr);
+            //가장 작은 문자열 길이 저장
+            answer = Math.min(answer, result.length());
         }
         return answer;
     }

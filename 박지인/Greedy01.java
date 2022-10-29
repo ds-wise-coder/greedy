@@ -12,6 +12,7 @@ public class Greedy01 {
         for (int i = 0; i < n; i++) {
             arrayList.add(sc.nextInt());
         }
+        //공포도를 오름차순으로 정렬
         Collections.sort(arrayList);
         sc.close();
 
